@@ -109,7 +109,8 @@
         font-weight: bold;
       }
       .calorie-input-container,
-      .api-key-container {
+      .api-key-container,
+      .ingredients-container {
         margin: 10px 0;
       }
       .footer {
@@ -120,34 +121,45 @@
         display: flex;
         justify-content: flex-end;
       }
+      .input-container {
+        width: 100%;
+      }
     </style>
   </head>
   <body>
     <h1>DailyDish</h1>
     <div class="api-key-container">
-      <input id="apiKeyInput" type="text" placeholder="OpenAI API Key" />
+      <div class="input-container">
+        <input id="apiKeyInput" type="text" placeholder="OpenAI API Key" />
+      </div>
       <div class="button-container">
         <button onclick="saveApiKey()">Save API Key</button>
       </div>
     </div>
     <div class="calorie-input-container">
-      <input
-        id="calorieInput"
-        type="number"
-        placeholder="Calorie Target (kcal)"
-      />
+      <div class="input-container">
+        <input
+          id="calorieInput"
+          type="number"
+          placeholder="Calorie Target (kcal)"
+        />
+      </div>
       <div class="button-container">
         <button onclick="saveCalorieTarget()">Save Target</button>
       </div>
     </div>
-    <h2>Add Ingredients</h2>
-    <input
-      id="ingredientInput"
-      placeholder="Example: chicken, rice, eggs (no quantities)"
-      onkeydown="if(event.key === 'Enter') addIngredient()"
-    />
-    <div class="button-container">
-      <button onclick="addIngredient()">Add Ingredient</button>
+    <div class="ingredients-container">
+      <h2>Add Ingredients</h2>
+      <div class="input-container">
+        <input
+          id="ingredientInput"
+          placeholder="Example: chicken, rice, eggs (no quantities)"
+          onkeydown="if(event.key === 'Enter') addIngredient()"
+        />
+      </div>
+      <div class="button-container">
+        <button onclick="addIngredient()">Add Ingredient</button>
+      </div>
     </div>
     <div id="ingredientList"></div>
     <button id="generateButton" onclick="generateCustomMealPlan()">
