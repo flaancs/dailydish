@@ -1,6 +1,3 @@
-Wrap
-Copy
-
 # DailyDish
 
 DailyDish is a simple yet powerful web application that generates personalized daily meal plans tailored to your available ingredients and desired calorie target. Whether you're aiming to hit a specific caloric goal or make the most of what’s in your pantry, DailyDish has you covered.
