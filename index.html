@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -111,31 +111,31 @@
     </style>
   </head>
   <body>
-    <h1>Planificador de Comidas Diarias</h1>
+    <h1>DailyDish</h1>
     <div class="api-key-container">
-      <input id="apiKeyInput" type="text" placeholder="Clave API de OpenAI" />
-      <button onclick="saveApiKey()">Guardar Clave API</button>
+      <input id="apiKeyInput" type="text" placeholder="OpenAI API Key" />
+      <button onclick="saveApiKey()">Save API Key</button>
     </div>
     <div class="calorie-input-container">
       <input
         id="calorieInput"
         type="number"
-        placeholder="Meta de calorías (kcal)"
+        placeholder="Calorie Target (kcal)"
       />
-      <button onclick="saveCalorieTarget()">Guardar Meta</button>
+      <button onclick="saveCalorieTarget()">Save Target</button>
     </div>
-    <h2>Agregar Ingredientes</h2>
+    <h2>Add Ingredients</h2>
     <input
       id="ingredientInput"
-      placeholder="Ejemplo: pollo, arroz, huevos (sin cantidades)"
+      placeholder="Example: chicken, rice, eggs (no quantities)"
       onkeydown="if(event.key === 'Enter') addIngredient()"
     />
-    <button onclick="addIngredient()">Agregar Ingrediente</button>
+    <button onclick="addIngredient()">Add Ingredient</button>
     <div id="ingredientList"></div>
     <button id="generateButton" onclick="generateCustomMealPlan()">
-      Generar Plan de Comidas
+      Generate Meal Plan
     </button>
-    <div id="loadingMessage">Generando tu plan de comidas...</div>
+    <div id="loadingMessage">Generating your meal plan...</div>
     <div id="errorMessage"></div>
     <div id="mealPlanContainer"></div>
 
@@ -157,7 +157,7 @@
           localStorage.setItem("apiKey", apiKey);
           hideError();
         } else {
-          showError("Por favor, ingresa una clave API válida.");
+          showError("Please enter a valid API key.");
         }
       }
 
@@ -167,10 +167,10 @@
         if (value && value > 0) {
           calorieTarget = value;
           localStorage.setItem("calorieTarget", calorieTarget);
-          document.title = `Planificador de Comidas Diarias (${calorieTarget} kcal)`;
+          document.title = `DailyDish (${calorieTarget} kcal)`;
           hideError();
         } else {
-          showError("Por favor, ingresa un valor válido de calorías.");
+          showError("Please enter a valid calorie value.");
         }
       }
 
@@ -187,8 +187,8 @@
           div.className = "ingredient-item";
           div.innerHTML = `
                     <span>${ingredient}</span>
-                    <button onclick="editIngredient(${index})">Editar</button>
-                    <button onclick="removeIngredient(${index})">Eliminar</button>
+                    <button onclick="editIngredient(${index})">Edit</button>
+                    <button onclick="removeIngredient(${index})">Remove</button>
                 `;
           list.appendChild(div);
         });
@@ -202,9 +202,9 @@
           saveIngredients();
           input.value = "";
         } else if (!ingredient) {
-          showError("Por favor, ingresa un ingrediente.");
+          showError("Please enter an ingredient.");
         } else {
-          showError("Este ingrediente ya está en la lista.");
+          showError("This ingredient is already in the list.");
         }
       }
 
@@ -214,7 +214,7 @@
       }
 
       function editIngredient(index) {
-        const newIngredient = prompt("Editar ingrediente:", ingredients[index]);
+        const newIngredient = prompt("Edit ingredient:", ingredients[index]);
         if (
           newIngredient &&
           newIngredient.trim() &&
@@ -223,9 +223,9 @@
           ingredients[index] = newIngredient.trim();
           saveIngredients();
         } else if (!newIngredient || !newIngredient.trim()) {
-          showError("Por favor, ingresa un ingrediente válido.");
+          showError("Please enter a valid ingredient.");
         } else {
-          showError("Este ingrediente ya está en la lista.");
+          showError("This ingredient is already in the list.");
         }
       }
 
@@ -245,7 +245,7 @@
       function generateTable(plan) {
         const totals = calculateTotals(plan);
         let html =
-          "<table><tr><th>Comida</th><th>Tamaño</th><th>Proteínas (g)</th><th>Grasas (g)</th><th>Carbohidratos (g)</th><th>Calorías (kcal)</th></tr>";
+          "<table><tr><th>Meal</th><th>Size</th><th>Protein (g)</th><th>Fat (g)</th><th>Carbs (g)</th><th>Calories (kcal)</th></tr>";
 
         plan.forEach((meal) => {
           const missingIngredients = findMissingIngredients(meal.size);
@@ -254,9 +254,7 @@
           html += `<tr class="${className}">
                     <td>${meal.name}${
             missingIngredients.length > 0
-              ? " (Ingredientes faltantes: " +
-                missingIngredients.join(", ") +
-                ")"
+              ? " (Missing ingredients: " + missingIngredients.join(", ") + ")"
               : ""
           }</td>
                     <td>${meal.size}</td>
@@ -311,7 +309,7 @@
       function showError(message) {
         document.getElementById(
           "errorMessage"
-        ).textContent = `¡Ups! Algo salió mal: ${message}.`;
+        ).textContent = `Oops! Something went wrong: ${message}.`;
         document.getElementById("errorMessage").style.display = "block";
         document.getElementById("mealPlanContainer").innerHTML = "";
       }
@@ -322,23 +320,21 @@
 
       async function generateCustomMealPlan() {
         if (!apiKey) {
-          showError("Por favor, ingresa y guarda tu clave API de OpenAI.");
+          showError("Please enter and save your OpenAI API key.");
           return;
         }
         if (ingredients.length === 0) {
-          showError(
-            "Por favor, agrega algunos ingredientes para generar un plan de comidas."
-          );
+          showError("Please add some ingredients to generate a meal plan.");
           return;
         }
 
         showLoading();
 
         const prompt = `
-                Tengo los siguientes ingredientes disponibles en Chile (sin cantidades específicas):
+                I have the following ingredients available (no specific quantities):
                 ${ingredients.join(", ")}
                 
-                Crea un plan de comidas diario con un objetivo exacto de ${calorieTarget} calorías usando EXCLUSIVAMENTE estos ingredientes, los cuales deben estar comúnmente disponibles en Chile. No incluyas ningún ingrediente que no esté en esta lista. Calcula los pesos y tamaños específicos para cada comida para alcanzar el objetivo, proporcionando recetas que usen solo estos ingredientes. Incluye información nutricional (calorías, proteínas, grasas, carbohidratos) para cada ítem. Devuelve el resultado como un arreglo JSON de objetos, donde cada objeto tiene las propiedades: name, size, protein, fat, carbs y calories. Asegúrate de que el plan sea balanceado (proteínas, grasas y carbohidratos adecuados) y totalice exactamente ${calorieTarget} calorías. Proporciona solo el arreglo JSON, sin texto adicional o explicaciones fuera del JSON.
+                Create a daily meal plan targeting exactly ${calorieTarget} calories using EXCLUSIVELY these ingredients. Do not include any ingredients not in this list. Calculate the specific weights and sizes for each meal to reach the target, providing recipes that use only these ingredients. Include nutritional information (calories, protein, fats, carbs) for each item. Return the result as a JSON array of objects, where each object has the properties: name, size, protein, fat, carbs, and calories. Ensure the plan is balanced (adequate protein, fats, and carbs) and totals exactly ${calorieTarget} calories. Provide only the JSON array, with no additional text or explanations outside the JSON. Respond in the same language as the ingredients provided.
             `;
 
         try {
@@ -356,7 +352,7 @@
                   {
                     role: "system",
                     content:
-                      "Eres un experto en nutrición y generador de recetas familiarizado con la cocina e ingredientes chilenos.",
+                      "You are a nutrition expert and recipe generator familiar with Chilean cuisine and ingredients.",
                   },
                   { role: "user", content: prompt },
                 ],
@@ -367,7 +363,7 @@
 
           if (!response.ok)
             throw new Error(
-              `La solicitud a la API falló con estado ${response.status}`
+              `API request failed with status ${response.status}`
             );
 
           const data = await response.json();
@@ -381,9 +377,7 @@
             if (jsonMatch && jsonMatch[1]) {
               mealPlan = JSON.parse(jsonMatch[1]);
             } else {
-              throw new Error(
-                "No se pudo analizar los datos del plan de comidas"
-              );
+              throw new Error("Failed to parse meal plan data");
             }
           }
 
@@ -408,7 +402,7 @@
         }
       }
 
-      document.title = `Planificador de Comidas Diarias (${calorieTarget} kcal)`;
+      document.title = `DailyDish (${calorieTarget} kcal)`;
       renderIngredientList();
       loadLastMealPlan();
     </script>
