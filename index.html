@@ -255,7 +255,7 @@
         plan.forEach((meal) => {
           html += `<tr>
                     <td>${meal.name}</td>
-                    <td>${meal.size}</td>
+                    <td>${meal.ingredients}</td>
                     <td>${meal.protein.toFixed(1)}</td>
                     <td>${meal.fat.toFixed(1)}</td>
                     <td>${meal.carbs.toFixed(1)}</td>
@@ -319,14 +319,13 @@
 
             Return the meal plan as a JSON array of objects. Each object should represent a single meal and include the following properties:
             - name: The name of the dish, prefixed with the meal type (e.g., "Breakfast: Scrambled Eggs with Vegetables", IN THE SAME LANGUAGE AS THE PROVIDED INGREDIENTS).
-            - ingredients: A list of ingredients used, with their exact quantities (e.g., "200g chicken breast", IN THE SAME LANGUAGE AS THE PROVIDED INGREDIENTS).
-            - size: The size of each ingredient to be used in the meal (e.g., "200g", "1 cup", "2 slices", IN THE SAME LANGUAGE AS THE PROVIDED INGREDIENTS, MAKE SURE TO MATCH THE TARGET CALORIES).
+            - ingredients: A list of ingredients used, with their exact quantities (e.g., "Eggs: 1 egg, Chicken: 200g, Avocado: 50g", IN THE SAME LANGUAGE AS THE PROVIDED INGREDIENTS).
             - protein: The total grams of protein in the meal.
             - fat: The total grams of fat in the meal.
             - carbs: The total grams of carbohydrates in the meal.
             - calories: The total calories in the meal.
 
-            Ensure the JSON array contains only these objects, with no additional text or explanations outside the JSON. All meals should use only the listed ingredients and provide clear guidance on what to cook. You MUST respond in the SAME LANGUAGE as the ingredients provided. The total calorie count for the day must NOT EXCEED ${calorieTarget}.
+            Ensure the JSON array contains only these objects, with no additional text or explanations outside the JSON. All meals should use only the listed ingredients and provide clear guidance on what to cook. You MUST ensure that all responses (including ingredient names and measurements) are in the SAME LANGUAGE as the provided ingredients. The total calorie count for the day must NOT EXCEED ${calorieTarget}.
         `;
 
         try {
