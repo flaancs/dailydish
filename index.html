@@ -253,15 +253,8 @@
           "<table><tr><th>Meal</th><th>Size</th><th>Protein (g)</th><th>Fat (g)</th><th>Carbs (g)</th><th>Calories (kcal)</th></tr>";
 
         plan.forEach((meal) => {
-          const missingIngredients = findMissingIngredients(meal.size);
-          const className =
-            missingIngredients.length > 0 ? "highlight-missing" : "";
-          html += `<tr class="${className}">
-                    <td>${meal.name}${
-            missingIngredients.length > 0
-              ? " (Missing ingredients: " + missingIngredients.join(", ") + ")"
-              : ""
-          }</td>
+          html += `<tr>
+                    <td>${meal.name}</td>
                     <td>${meal.size}</td>
                     <td>${meal.protein.toFixed(1)}</td>
                     <td>${meal.fat.toFixed(1)}</td>
@@ -280,23 +273,6 @@
             </tr></table>`;
 
         return html;
-      }
-
-      function findMissingIngredients(size) {
-        const sizeLower = size.toLowerCase();
-        return sizeLower
-          .split(/[,+\s]+/)
-          .map((item) => item.trim())
-          .filter((item) => {
-            return (
-              item &&
-              !ingredients.some(
-                (ing) =>
-                  ing.toLowerCase() === item ||
-                  sizeLower.includes(ing.toLowerCase())
-              )
-            );
-          });
       }
 
       function showLoading() {
@@ -339,7 +315,7 @@
                 I have the following ingredients available (no specific quantities):
                 ${ingredients.join(", ")}
                 
-                Create a daily meal plan targeting exactly ${calorieTarget} calories using EXCLUSIVELY these ingredients. Do not include any ingredients not in this list. Calculate the specific weights and sizes for each meal to reach the target, providing recipes that use only these ingredients. Include nutritional information (calories, protein, fats, carbs) for each item. Return the result as a JSON array of objects, where each object has the properties: name, size, protein, fat, carbs, and calories. Ensure the plan is balanced (adequate protein, fats, and carbs) and totals exactly ${calorieTarget} calories. Provide only the JSON array, with no additional text or explanations outside the JSON. Respond in the same language as the ingredients provided.
+                Create a daily meal plan targeting a maximum of ${calorieTarget} calories using EXCLUSIVELY these ingredients. Do not include any ingredients not in this list. Calculate the specific weights and sizes for each meal to reach the target, providing recipes that use only these ingredients. Include nutritional information (calories, protein, fats, carbs) for each item. Return the result as a JSON array of objects, where each object has the properties: name, size, protein, fat, carbs, and calories. Ensure the plan is balanced (adequate protein, fats, and carbs) and totals maximum ${calorieTarget} calories. Provide only the JSON array, with no additional text or explanations outside the JSON. Respond in the same language as the ingredients provided.
             `;
 
         try {
@@ -356,8 +332,7 @@
                 messages: [
                   {
                     role: "system",
-                    content:
-                      "You are a nutrition expert and recipe generator familiar with Chilean cuisine and ingredients.",
+                    content: "You are a nutrition expert and recipe generator.",
                   },
                   { role: "user", content: prompt },
                 ],
