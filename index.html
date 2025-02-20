@@ -326,7 +326,7 @@
             - carbs: The total grams of carbohydrates in the meal.
             - calories: The total calories in the meal.
 
-            Ensure the JSON array contains only these objects, with no additional text or explanations outside the JSON. All meals should use only the listed ingredients and provide clear guidance on what to cook. Respond in the same language as the ingredients provided. The total calorie count for the day must not exceed ${calorieTarget}.
+            Ensure the JSON array contains only these objects, with no additional text or explanations outside the JSON. All meals should use only the listed ingredients and provide clear guidance on what to cook. You MUST respond in the SAME LANGUAGE as the ingredients provided. The total calorie count for the day must NOT EXCEED ${calorieTarget}.
         `;
 
         try {
