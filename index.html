@@ -62,7 +62,7 @@
       input {
         padding: 10px;
         margin: 10px 0;
-        width: 250px;
+        width: 100%;
         border: 1px solid #ccc;
         border-radius: 5px;
         box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
@@ -113,13 +113,19 @@
         margin-top: 20px;
         text-align: center;
       }
+      .button-container {
+        display: flex;
+        justify-content: flex-end;
+      }
     </style>
   </head>
   <body>
     <h1>DailyDish</h1>
     <div class="api-key-container">
       <input id="apiKeyInput" type="text" placeholder="OpenAI API Key" />
-      <button onclick="saveApiKey()">Save API Key</button>
+      <div class="button-container">
+        <button onclick="saveApiKey()">Save API Key</button>
+      </div>
     </div>
     <div class="calorie-input-container">
       <input
@@ -127,7 +133,9 @@
         type="number"
         placeholder="Calorie Target (kcal)"
       />
-      <button onclick="saveCalorieTarget()">Save Target</button>
+      <div class="button-container">
+        <button onclick="saveCalorieTarget()">Save Target</button>
+      </div>
     </div>
     <h2>Add Ingredients</h2>
     <input
@@ -135,7 +143,9 @@
       placeholder="Example: chicken, rice, eggs (no quantities)"
       onkeydown="if(event.key === 'Enter') addIngredient()"
     />
-    <button onclick="addIngredient()">Add Ingredient</button>
+    <div class="button-container">
+      <button onclick="addIngredient()">Add Ingredient</button>
+    </div>
     <div id="ingredientList"></div>
     <button id="generateButton" onclick="generateCustomMealPlan()">
       Generate Meal Plan
