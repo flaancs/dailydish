@@ -312,11 +312,22 @@
         showLoading();
 
         const prompt = `
-                I have the following ingredients available (no specific quantities):
-                ${ingredients.join(", ")}
-                
-                Create a daily meal plan targeting a maximum of ${calorieTarget} calories using EXCLUSIVELY these ingredients. Do not include any ingredients not in this list. Calculate the specific weights and sizes for each meal to reach the target, providing recipes that use only these ingredients. Include nutritional information (calories, protein, fats, carbs) for each item. Return the result as a JSON array of objects, where each object has the properties: name, size, protein, fat, carbs, and calories. Ensure the plan is balanced (adequate protein, fats, and carbs) and totals maximum ${calorieTarget} calories. Provide only the JSON array, with no additional text or explanations outside the JSON. Respond in the same language as the ingredients provided. The calories must not exceed the maximum target (${calorieTarget}).
-            `;
+            I have the following ingredients available (no specific quantities):
+            ${ingredients.join(", ")}
+
+            Create a daily meal plan with four meals (breakfast, lunch, snack, dinner) targeting a maximum of ${calorieTarget} calories using EXCLUSIVELY these ingredients. Each meal must include clear recipes or dishes that can be prepared using the provided ingredients. Specify the exact quantities (weights or sizes) of each ingredient used in every meal and calculate the nutritional information (calories, protein, fats, carbs) for each meal. Ensure the total calories for the day do not exceed ${calorieTarget}, and distribute the calories evenly across the meals.
+
+            Return the meal plan as a JSON array of objects. Each object should represent a single meal and include the following properties:
+            - name: The name of the dish or meal.
+            - ingredients: A list of ingredients used, with their exact quantities (e.g., "200g chicken breast").
+            - size: The portion size or serving size of the meal.
+            - protein: The total grams of protein in the meal.
+            - fat: The total grams of fat in the meal.
+            - carbs: The total grams of carbohydrates in the meal.
+            - calories: The total calories in the meal.
+
+            Ensure the JSON array contains only these objects, with no additional text or explanations outside the JSON. All meals should use only the listed ingredients and provide clear guidance on what to cook. Respond in the same language as the ingredients provided. The total calorie count for the day must not exceed ${calorieTarget}.
+        `;
 
         try {
           const response = await fetch(
