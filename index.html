@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>DailyDish</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px;
+        background-color: #f9f9f9;
+      }
+      h1,
+      h2 {
+        color: #333;
+      }
+      table {
+        border-collapse: collapse;
+        width: 100%;
+        margin: 20px 0;
+        background-color: #fff;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+      }
+      th,
+      td {
+        border: 1px solid #ddd;
+        padding: 10px;
+        text-align: left;
+      }
+      th {
+        background-color: #f2f2f2;
+        color: #555;
+      }
+      .total {
+        font-weight: bold;
+        background-color: #e6f3ff;
+      }
+      button {
+        padding: 10px 20px;
+        margin: 5px;
+        cursor: pointer;
+        background-color: #007bff;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        transition: background-color 0.3s;
+      }
+      button:hover:not(:disabled) {
+        background-color: #0056b3;
+      }
+      button:disabled {
+        background-color: #cccccc;
+        cursor: not-allowed;
+      }
+      input {
+        padding: 10px;
+        margin: 10px 0;
+        width: 250px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+      }
+      #ingredientList {
+        margin: 20px 0;
+      }
+      .ingredient-item {
+        display: flex;
+        align-items: center;
+        margin: 10px 0;
+        padding: 10px;
+        background-color: #fff;
+        border: 1px solid #eee;
+        border-radius: 5px;
+      }
+      .ingredient-item span {
+        flex-grow: 1;
+        margin-right: 10px;
+        color: #444;
+      }
+      .ingredient-item button {
+        padding: 5px 10px;
+        margin: 0 5px;
+        font-size: 14px;
+      }
+      #loadingMessage {
+        display: none;
+        color: #007bff;
+        margin: 10px 0;
+        font-style: italic;
+      }
+      #errorMessage {
+        display: none;
+        color: #dc3545;
+        margin: 10px 0;
+        padding: 15px;
+        background-color: #f8d7da;
+        border: 1px solid #f5c6cb;
+        border-radius: 5px;
+        font-weight: bold;
+      }
+      .calorie-input-container,
+      .api-key-container {
+        margin: 10px 0;
+      }
+      .highlight-missing {
+        background-color: #ffcccc;
+        font-weight: bold;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Planificador de Comidas Diarias</h1>
+    <div class="api-key-container">
+      <input id="apiKeyInput" type="text" placeholder="Clave API de OpenAI" />
+      <button onclick="saveApiKey()">Guardar Clave API</button>
+    </div>
+    <div class="calorie-input-container">
+      <input
+        id="calorieInput"
+        type="number"
+        placeholder="Meta de calorías (kcal)"
+      />
+      <button onclick="saveCalorieTarget()">Guardar Meta</button>
+    </div>
+    <h2>Agregar Ingredientes</h2>
+    <input
+      id="ingredientInput"
+      placeholder="Ejemplo: pollo, arroz, huevos (sin cantidades)"
+      onkeydown="if(event.key === 'Enter') addIngredient()"
+    />
+    <button onclick="addIngredient()">Agregar Ingrediente</button>
+    <div id="ingredientList"></div>
+    <button id="generateButton" onclick="generateCustomMealPlan()">
+      Generar Plan de Comidas
+    </button>
+    <div id="loadingMessage">Generando tu plan de comidas...</div>
+    <div id="errorMessage"></div>
+    <div id="mealPlanContainer"></div>
+
+    <script>
+      let ingredients = JSON.parse(localStorage.getItem("ingredients")) || [];
+      let calorieTarget = localStorage.getItem("calorieTarget") || 1870;
+      let apiKey = localStorage.getItem("apiKey") || "";
+      let lastMealPlan =
+        JSON.parse(localStorage.getItem("lastMealPlan")) || null;
+
+      document.getElementById("calorieInput").value = calorieTarget;
+      document.getElementById("apiKeyInput").value = apiKey;
+
+      function saveApiKey() {
+        const input = document.getElementById("apiKeyInput");
+        const value = input.value.trim();
+        if (value) {
+          apiKey = value;
+          localStorage.setItem("apiKey", apiKey);
+          hideError();
+        } else {
+          showError("Por favor, ingresa una clave API válida.");
+        }
+      }
+
+      function saveCalorieTarget() {
+        const input = document.getElementById("calorieInput");
+        const value = parseInt(input.value.trim());
+        if (value && value > 0) {
+          calorieTarget = value;
+          localStorage.setItem("calorieTarget", calorieTarget);
+          document.title = `Planificador de Comidas Diarias (${calorieTarget} kcal)`;
+          hideError();
+        } else {
+          showError("Por favor, ingresa un valor válido de calorías.");
+        }
+      }
+
+      function saveIngredients() {
+        localStorage.setItem("ingredients", JSON.stringify(ingredients));
+        renderIngredientList();
+      }
+
+      function renderIngredientList() {
+        const list = document.getElementById("ingredientList");
+        list.innerHTML = "";
+        ingredients.forEach((ingredient, index) => {
+          const div = document.createElement("div");
+          div.className = "ingredient-item";
+          div.innerHTML = `
+                    <span>${ingredient}</span>
+                    <button onclick="editIngredient(${index})">Editar</button>
+                    <button onclick="removeIngredient(${index})">Eliminar</button>
+                `;
+          list.appendChild(div);
+        });
+      }
+
+      function addIngredient() {
+        const input = document.getElementById("ingredientInput");
+        const ingredient = input.value.trim();
+        if (ingredient && !ingredients.includes(ingredient)) {
+          ingredients.push(ingredient);
+          saveIngredients();
+          input.value = "";
+        } else if (!ingredient) {
+          showError("Por favor, ingresa un ingrediente.");
+        } else {
+          showError("Este ingrediente ya está en la lista.");
+        }
+      }
+
+      function removeIngredient(index) {
+        ingredients.splice(index, 1);
+        saveIngredients();
+      }
+
+      function editIngredient(index) {
+        const newIngredient = prompt("Editar ingrediente:", ingredients[index]);
+        if (
+          newIngredient &&
+          newIngredient.trim() &&
+          !ingredients.includes(newIngredient.trim())
+        ) {
+          ingredients[index] = newIngredient.trim();
+          saveIngredients();
+        } else if (!newIngredient || !newIngredient.trim()) {
+          showError("Por favor, ingresa un ingrediente válido.");
+        } else {
+          showError("Este ingrediente ya está en la lista.");
+        }
+      }
+
+      function calculateTotals(plan) {
+        return plan.reduce(
+          (totals, meal) => {
+            totals.protein += meal.protein;
+            totals.fat += meal.fat;
+            totals.carbs += meal.carbs;
+            totals.calories += meal.calories;
+            return totals;
+          },
+          { protein: 0, fat: 0, carbs: 0, calories: 0 }
+        );
+      }
+
+      function generateTable(plan) {
+        const totals = calculateTotals(plan);
+        let html =
+          "<table><tr><th>Comida</th><th>Tamaño</th><th>Proteínas (g)</th><th>Grasas (g)</th><th>Carbohidratos (g)</th><th>Calorías (kcal)</th></tr>";
+
+        plan.forEach((meal) => {
+          const missingIngredients = findMissingIngredients(meal.size);
+          const className =
+            missingIngredients.length > 0 ? "highlight-missing" : "";
+          html += `<tr class="${className}">
+                    <td>${meal.name}${
+            missingIngredients.length > 0
+              ? " (Ingredientes faltantes: " +
+                missingIngredients.join(", ") +
+                ")"
+              : ""
+          }</td>
+                    <td>${meal.size}</td>
+                    <td>${meal.protein.toFixed(1)}</td>
+                    <td>${meal.fat.toFixed(1)}</td>
+                    <td>${meal.carbs.toFixed(1)}</td>
+                    <td>${meal.calories.toFixed(1)}</td>
+                </tr>`;
+        });
+
+        html += `<tr class="total">
+                <td>Total</td>
+                <td></td>
+                <td>${totals.protein.toFixed(1)}</td>
+                <td>${totals.fat.toFixed(1)}</td>
+                <td>${totals.carbs.toFixed(1)}</td>
+                <td>${totals.calories.toFixed(1)}</td>
+            </tr></table>`;
+
+        return html;
+      }
+
+      function findMissingIngredients(size) {
+        const sizeLower = size.toLowerCase();
+        return sizeLower
+          .split(/[,+\s]+/)
+          .map((item) => item.trim())
+          .filter((item) => {
+            return (
+              item &&
+              !ingredients.some(
+                (ing) =>
+                  ing.toLowerCase() === item ||
+                  sizeLower.includes(ing.toLowerCase())
+              )
+            );
+          });
+      }
+
+      function showLoading() {
+        document.getElementById("generateButton").disabled = true;
+        document.getElementById("loadingMessage").style.display = "block";
+        document.getElementById("errorMessage").style.display = "none";
+        document.getElementById("mealPlanContainer").innerHTML = "";
+      }
+
+      function hideLoading() {
+        document.getElementById("generateButton").disabled = false;
+        document.getElementById("loadingMessage").style.display = "none";
+      }
+
+      function showError(message) {
+        document.getElementById(
+          "errorMessage"
+        ).textContent = `¡Ups! Algo salió mal: ${message}.`;
+        document.getElementById("errorMessage").style.display = "block";
+        document.getElementById("mealPlanContainer").innerHTML = "";
+      }
+
+      function hideError() {
+        document.getElementById("errorMessage").style.display = "none";
+      }
+
+      async function generateCustomMealPlan() {
+        if (!apiKey) {
+          showError("Por favor, ingresa y guarda tu clave API de OpenAI.");
+          return;
+        }
+        if (ingredients.length === 0) {
+          showError(
+            "Por favor, agrega algunos ingredientes para generar un plan de comidas."
+          );
+          return;
+        }
+
+        showLoading();
+
+        const prompt = `
+                Tengo los siguientes ingredientes disponibles en Chile (sin cantidades específicas):
+                ${ingredients.join(", ")}
+                
+                Crea un plan de comidas diario con un objetivo exacto de ${calorieTarget} calorías usando EXCLUSIVAMENTE estos ingredientes, los cuales deben estar comúnmente disponibles en Chile. No incluyas ningún ingrediente que no esté en esta lista. Calcula los pesos y tamaños específicos para cada comida para alcanzar el objetivo, proporcionando recetas que usen solo estos ingredientes. Incluye información nutricional (calorías, proteínas, grasas, carbohidratos) para cada ítem. Devuelve el resultado como un arreglo JSON de objetos, donde cada objeto tiene las propiedades: name, size, protein, fat, carbs y calories. Asegúrate de que el plan sea balanceado (proteínas, grasas y carbohidratos adecuados) y totalice exactamente ${calorieTarget} calorías. Proporciona solo el arreglo JSON, sin texto adicional o explicaciones fuera del JSON.
+            `;
+
+        try {
+          const response = await fetch(
+            "https://api.openai.com/v1/chat/completions",
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${apiKey}`,
+              },
+              body: JSON.stringify({
+                model: "gpt-4o-mini",
+                messages: [
+                  {
+                    role: "system",
+                    content:
+                      "Eres un experto en nutrición y generador de recetas familiarizado con la cocina e ingredientes chilenos.",
+                  },
+                  { role: "user", content: prompt },
+                ],
+                temperature: 0.7,
+              }),
+            }
+          );
+
+          if (!response.ok)
+            throw new Error(
+              `La solicitud a la API falló con estado ${response.status}`
+            );
+
+          const data = await response.json();
+          const mealPlanText = data.choices[0].message.content;
+
+          let mealPlan;
+          try {
+            mealPlan = JSON.parse(mealPlanText);
+          } catch (e) {
+            const jsonMatch = mealPlanText.match(/```json\n([\s\S]*?)\n```/);
+            if (jsonMatch && jsonMatch[1]) {
+              mealPlan = JSON.parse(jsonMatch[1]);
+            } else {
+              throw new Error(
+                "No se pudo analizar los datos del plan de comidas"
+              );
+            }
+          }
+
+          lastMealPlan = mealPlan;
+          localStorage.setItem("lastMealPlan", JSON.stringify(lastMealPlan));
+
+          hideLoading();
+          hideError();
+          document.getElementById("mealPlanContainer").innerHTML =
+            generateTable(mealPlan);
+        } catch (error) {
+          hideLoading();
+          showError(error.message);
+          console.error("Error:", error);
+        }
+      }
+
+      function loadLastMealPlan() {
+        if (lastMealPlan) {
+          document.getElementById("mealPlanContainer").innerHTML =
+            generateTable(lastMealPlan);
+        }
+      }
+
+      document.title = `Planificador de Comidas Diarias (${calorieTarget} kcal)`;
+      renderIngredientList();
+      loadLastMealPlan();
+    </script>
+  </body>
+</html>
